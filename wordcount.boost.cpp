@@ -4,29 +4,22 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 
-typedef std::unordered_map<std::string, int> WordDict;
-
-static void wc(const std::string& dir, WordDict& dict)
+int main()
 {
-	for (auto& dirIter : boost::filesystem::recursive_directory_iterator(dir))
+	std::unordered_map<std::string, int> records;
+	for (auto& dirIter : boost::filesystem::recursive_directory_iterator("./testdata"))
 	{
 		if (boost::filesystem::is_regular_file(dirIter.status()))
 		{
 			std::ifstream f(dirIter.path().string());
 			for (std::istream_iterator<std::string> wordIter(f), end; wordIter != end; wordIter++)
-				if (dict.find(*wordIter) != dict.end())
-					dict[*wordIter]++;
+				if (records.find(*wordIter) != records.end())
+					records[*wordIter]++;
 				else
-					dict[*wordIter] = 1;
+					records[*wordIter] = 1;
 		}
 	}
-}
-
-int main()
-{
-	WordDict dict;
-	wc("./testdata", dict);
-	for (auto& iter : dict)
+	for (auto& iter : records)
 		std::cout << iter.first << ": " << iter.second << std::endl;
 	return 0;
 }
