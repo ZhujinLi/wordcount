@@ -1,27 +1,32 @@
 #include <iostream>
 #include <string>
 #include <hash_map>
+#include <fstream>
 #include <boost/filesystem.hpp>
 
-void wc(const std::string& dir, std::hash_map<std::string, int>& dict)
+typedef std::hash_map<std::string, int> WordDict;
+
+static void wc(const std::string& dir, std::hash_map<std::string, int>& dict)
 {
-	boost::filesystem::path path = boost::filesystem::current_path();
-	for (boost::filesystem::recursive_directory_iterator iter(path);
-		iter != boost::filesystem::recursive_directory_iterator();
-		iter++)
+	for (auto& dirIter : boost::filesystem::recursive_directory_iterator(dir))
 	{
-		std::cout << iter->path().string() << std::endl;
+		if (dirIter.status().type() == boost::filesystem::regular_file)
+		{
+			std::ifstream f(dirIter.path().string());
+			for (std::istream_iterator<std::string> wordIter(f), end; wordIter != end; wordIter++)
+				if (dict.find(*wordIter) != dict.end())
+					dict[*wordIter]++;
+				else
+					dict[*wordIter] = 1;
+		}
 	}
 }
 
 int main()
 {
-	typedef std::hash_map<std::string, int> WordDict;
 	WordDict dict;
-	wc("./", dict);
-	for (WordDict::iterator iter = dict.begin(); iter != dict.end(); iter++)
-	{
-		std::cout << iter->first << ": " << iter->second << std::endl;
-	}
+	wc("./testdata", dict);
+	for (auto& iter : dict)
+		std::cout << iter.first << ": " << iter.second << std::endl;
 	return 0;
 }

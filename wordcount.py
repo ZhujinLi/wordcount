@@ -2,7 +2,7 @@ import os
 
 result = dict()
 
-for _, _, filenames in os.walk('.'):
+for _, _, filenames in os.walk('./testdata'):
     for filename in filenames:
         with open(filename) as f:
             for word in f.read().split():
