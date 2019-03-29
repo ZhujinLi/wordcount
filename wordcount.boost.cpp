@@ -1,16 +1,16 @@
 #include <iostream>
 #include <string>
-#include <hash_map>
+#include <unordered_map>
 #include <fstream>
 #include <boost/filesystem.hpp>
 
-typedef std::hash_map<std::string, int> WordDict;
+typedef std::unordered_map<std::string, int> WordDict;
 
-static void wc(const std::string& dir, std::hash_map<std::string, int>& dict)
+static void wc(const std::string& dir, WordDict& dict)
 {
 	for (auto& dirIter : boost::filesystem::recursive_directory_iterator(dir))
 	{
-		if (dirIter.status().type() == boost::filesystem::regular_file)
+		if (boost::filesystem::is_regular_file(dirIter.status()))
 		{
 			std::ifstream f(dirIter.path().string());
 			for (std::istream_iterator<std::string> wordIter(f), end; wordIter != end; wordIter++)
