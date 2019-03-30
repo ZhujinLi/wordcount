@@ -9,34 +9,40 @@
 typedef struct {
 	char _words[MAX_WORD_COUNT][MAX_WORD_LEN];
 	int _counts[MAX_WORD_COUNT];
-	int _size;
 } WordRecords;
 
+typedef int WordRecordIterator;
+
 void WordRecords_init(WordRecords* o) {
-	o->_size = 0;
+	memset(o, 0, sizeof *o);
 }
 
 void WordRecords_addWordCount(WordRecords* o, const char* word) {
-	int index = -1;
-	for (int i = 0; index == -1 && i < o->_size; i++)
-		if (strcmp(o->_words[i], word) == 0)
+	int hash = 5381;
+	for (const char* c = word; *c; c++)
+		hash = (((hash << 5) + hash) + *c) % MAX_WORD_COUNT;
+
+	int index = -1, found = 0;
+	for (int i = hash; index == -1; i = (i + 1) % MAX_WORD_COUNT)
+		if (o->_words[i][0] == 0 || (found = (strcmp(o->_words[i], word) == 0)))
 			index = i;
-	if (index == -1) {
-		o->_counts[o->_size] = 1;
-		strcpy(o->_words[o->_size], word);
-		o->_size++;
-	} else {
-		o->_counts[index]++;
-	}
+
+	if (!found)
+		strcpy(o->_words[index], word);
+	o->_counts[index]++;
 }
 
-int WordRecords_getSize(WordRecords* o) {
-	return o->_size;
+WordRecordIterator WordRecords_getIterator(WordRecords* o) {
+	return -1;
 }
 
-const char* WordRecords_getWordAndCountAtIndex(WordRecords* o, int index, int* count) {
-	*count = o->_counts[index];
-	return o->_words[index];
+const char* WordRecords_nextWordAndCount(WordRecords* o, WordRecordIterator* iter, int* count) {
+	for ((*iter)++; *iter < MAX_WORD_COUNT; (*iter)++)
+		if (o->_words[*iter][0]) {
+			*count = o->_counts[*iter];
+			return o->_words[*iter];
+		}
+	return NULL;
 }
 
 void processFile(const char* path, WordRecords* records) {
@@ -55,10 +61,7 @@ void wc(const char* root, WordRecords* records) {
 		for (struct dirent* de; (de = readdir(dir)); )
 			if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0) {
 				char path[MAX_PATH_LEN];
-				strcpy(path, root);
-				strcat(path, "/");
-				strcat(path, de->d_name);
-
+				sprintf(path, "%s/%s", root, de->d_name);
 				if (de->d_type == DT_DIR)
 					wc(path, records);
 				else if (de->d_type == DT_REG)
@@ -72,10 +75,11 @@ int main() {
 	WordRecords records;
 	WordRecords_init(&records);
 	wc("./testdata", &records);
-	for (int i = 0; i < WordRecords_getSize(&records); i++) {
-		int count = 0;
-		const char* word = WordRecords_getWordAndCountAtIndex(&records, i, &count);
+
+	const char* word = NULL;
+	int count = 0;
+	WordRecordIterator iter = WordRecords_getIterator(&records);
+	while ((word = WordRecords_nextWordAndCount(&records, &iter, &count)))
 		printf("%s: %d\n", word, count);
-	}
 	return 0;
 }
