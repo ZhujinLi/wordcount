@@ -5,13 +5,13 @@ function walk(dir, records) {
     records = records || {};
 
     fs.readdirSync(dir).forEach((f) => {
-        let entry = path.join(dir, f);
-        let stat = fs.statSync(entry);
+        const entry = path.join(dir, f);
+        const stat = fs.statSync(entry);
         if (stat && stat.isDirectory()) {
             walk(entry, records);
         } else {
-            let content = fs.readFileSync(entry, 'utf8');
-            let words = content.replace(/\n/g, ' ').split(' ');
+            const content = fs.readFileSync(entry, 'utf8');
+            const words = content.replace(/\n/g, ' ').split(' ');
             words.forEach((word) => {
                 if (!records.hasOwnProperty(word))
                     records[word] = 0;
