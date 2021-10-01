@@ -11,7 +11,7 @@ error handling can be ignored.
 
 Typically, an implementation demonstrates the control flow, subroutines and built-in libraries of the language, thus can be regarded as a strengthened "hello world".
 
-Expected result:
+The results are expected to be like this:
 
 ::
 
