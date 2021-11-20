@@ -1,4 +1,4 @@
-// C++17 or higher is required
+static_assert(__cplusplus >= 201703L, "C++17 or higher is required");
 
 #include <filesystem>
 #include <fstream>
